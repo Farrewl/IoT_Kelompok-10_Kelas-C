@@ -14,7 +14,6 @@ Android. Tidak ada Termux, tidak ada broker MQTT, tidak ada CDN atau build step.
 |---|---|---|
 | Edge 1 | HP Android + Chrome | Membaca akselerometer dan kecerahan (kamera), mengirim via WebSocket 5 Hz, bergetar + memunculkan notifikasi |
 | Edge 2 | Laptop | Server FastAPI: penyedia web app, logika deteksi, pembuat Kode Akses, penyimpanan status |
-| Edge 3 | Huawei Band 6 | Menerima notifikasi Android yang diteruskan Huawei Health lewat Bluetooth |
 | Tunnel | Cloudflare quick tunnel | Alamat HTTPS publik agar HP bisa memakai data seluler dan sensor tetap berjalan (secure context) |
 
 ```mermaid
