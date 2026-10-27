@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TasGuard - Laptop Dashboard</title>
+    <base href="/">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="dash-container">
+    <header class="dash-header">
+        <h1>TasGuard Dashboard</h1>
+        <span id="dash-time" class="dash-time">Memuat...</span>
+    </header>
+
+    <div class="dash-grid">
+        <!-- HP A -->
+        <div id="card-A" class="dash-card">
+            <div class="dash-card-header">
+                <h2>HP A</h2>
+                <span id="status-dot-A" class="badge-dot dot-red">Offline</span>
+            </div>
+            <div class="dash-metrics">
+                <div>Status: <strong id="stat-status-A">-</strong></div>
+                <div>Penjagaan (Armed): <strong id="stat-armed-A">-</strong></div>
+                <div>Cahaya: <strong id="stat-light-A">-</strong></div>
+                <div>Gerakan: <strong id="stat-accel-A">-</strong></div>
+                <div>Baterai: <strong id="stat-battery-A">-</strong></div>
+                <div>Update terakhir: <strong id="stat-seen-A">-</strong></div>
+                <div>Total Alarm: <strong id="stat-alarms-A">0</strong></div>
+            </div>
+        </div>
+
+        <!-- HP B -->
+        <div id="card-B" class="dash-card">
+            <div class="dash-card-header">
+                <h2>HP B</h2>
+                <span id="status-dot-B" class="badge-dot dot-red">Offline</span>
+            </div>
+            <div class="dash-metrics">
+                <div>Status: <strong id="stat-status-B">-</strong></div>
+                <div>Penjagaan (Armed): <strong id="stat-armed-B">-</strong></div>
+                <div>Cahaya: <strong id="stat-light-B">-</strong></div>
+                <div>Gerakan: <strong id="stat-accel-B">-</strong></div>
+                <div>Baterai: <strong id="stat-battery-B">-</strong></div>
+                <div>Update terakhir: <strong id="stat-seen-B">-</strong></div>
+                <div>Total Alarm: <strong id="stat-alarms-B">0</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-footer">
+        <span>Mode pemantauan lokal (tanpa notifikasi).</span>
+        <span id="dash-total-alarms">Total Alarm Sistem: 0</span>
+    </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

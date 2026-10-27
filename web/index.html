@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TasGuard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>TasGuard</h1>
+            <span id="role-badge" class="role-badge">HP -</span>
+        </div>
+        <p class="subtitle">Pemantauan keamanan tas</p>
+
+        <!-- Layar sambung -->
+        <section id="connect-screen" class="glass-card">
+            <h2>Sambungkan ke laptop</h2>
+            <div class="form-group">
+                <label for="access-key">Kode Akses</label>
+                <div class="input-row">
+                    <input type="password" id="access-key" placeholder="Tempel kode akses di sini" autocomplete="off">
+                    <button type="button" id="toggle-key" class="btn-secondary">Lihat</button>
+                </div>
+            </div>
+            <label class="form-check">
+                <input type="checkbox" id="remember-key" checked>
+                <span>Ingat di HP ini</span>
+            </label>
+            <button id="btn-connect" class="btn-primary">Sambungkan</button>
+            <p id="error-msg" class="error-text hidden"></p>
+        </section>
+
+        <!-- Layar utama -->
+        <section id="main-screen" class="glass-card hidden">
+            <div id="status-card" class="status-card status-warning">
+                <h3 id="status-title">Menunggu koneksi</h3>
+            </div>
+
+            <div id="peer-alert" class="peer-alert hidden">
+                <strong id="peer-alert-text">HP Pasangan Tidak Aman!</strong>
+            </div>
+
+            <button id="btn-dismiss-alarm" class="btn-primary orange hidden">Saya Sudah Aman</button>
+
+
+
+            <button id="btn-toggle-monitor" class="btn-primary">Mulai Pemantauan</button>
+            <button id="btn-bag-mode" class="btn-secondary full hidden">Masuk Mode Tas</button>
+
+            <div class="grid-2">
+                <div class="mini-card">
+                    <span class="mini-label">Cahaya Anda</span>
+                    <strong id="val-light">--</strong>
+                    <span id="val-light-src" class="mini-sub">Sumber: -</span>
+                </div>
+                <div class="mini-card">
+                    <span class="mini-label">Gerakan Anda</span>
+                    <strong id="val-accel">--</strong>
+                    <span id="val-accel-sub" class="mini-sub">Deviasi: 0.00</span>
+                </div>
+            </div>
+
+            <div class="glass-card peer-card" id="peer-card">
+                <div class="peer-header">
+                    <h4>HP Pasangan (<span id="peer-role">-</span>)</h4>
+                    <span id="peer-status-badge" class="badge-dot dot-red">Offline</span>
+                </div>
+                <div class="peer-grid">
+                    <div>Cahaya: <span id="peer-light">-</span></div>
+                    <div>Gerakan: <span id="peer-motion">-</span></div>
+                    <div>Baterai: <span id="peer-battery">-</span></div>
+                    <div>Update: <span id="peer-age">-</span></div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <span id="bar-laptop" class="badge-dot dot-red">Laptop terputus</span>
+                <span id="bar-battery">Baterai: --%</span>
+            </div>
+
+            <div class="glass-card">
+                <h4>Riwayat</h4>
+                <div id="alarm-history-list" class="history-list">Belum ada riwayat alarm.</div>
+            </div>
+
+            <button id="btn-disconnect" class="btn-secondary full">Putuskan</button>
+        </section>
+    </div>
+
+    <!-- Mode tas -->
+    <div id="bag-mode-overlay" class="bag-overlay hidden">
+        <div class="bag-content">
+            <div id="bag-overlay-status" class="bag-dot"></div>
+            <h2>TasGuard berjalan</h2>
+            <p>Tahan layar 3 detik untuk keluar.</p>
+            <p id="bag-alarm-text" class="bag-alarm hidden">TAS ANDA DIBUKA &amp; BERGERAK!</p>
+        </div>
+    </div>
+
+    <video id="hidden-video" autoplay playsinline muted></video>
+    <canvas id="hidden-canvas" width="16" height="16"></canvas>
+
+    <script src="app.js"></script>
+</body>
+</html>
