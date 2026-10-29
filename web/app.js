@@ -31,9 +31,15 @@ const state = {
     maxDelta: 0,
     currentDelta: 0,
     battery: null,
+    locationWatchId: null,
+    locationOwn: null,
+    locationLive: false,
+    lastLocationSent: 0,
+    mapMode: null,
 };
 
 const el = {};
+let miniMap = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -44,11 +50,12 @@ function init() {
         "btn-dismiss-alarm", "btn-toggle-monitor",
         "btn-bag-mode", "bag-mode-overlay", "bag-overlay-status", "bag-alarm-text",
         "val-light", "val-light-src", "val-accel", "val-accel-sub", "bar-laptop",
-        "bar-battery", "alarm-history-list", "diag-ax", "diag-ay",
-        "diag-az", "diag-lval", "diag-lsrc", "diag-interval",
+        "bar-battery", "alarm-history-list",
         "hidden-video", "hidden-canvas", "role-badge", "peer-card", "peer-role",
         "peer-status-badge", "peer-light", "peer-motion",
         "peer-battery", "peer-age", "peer-alert", "peer-alert-text",
+        "map-panel", "map-title", "map-status", "map-canvas", "map-coords",
+        "map-link", "btn-retry-camera", "insecure-warning",
     ];
     ids.forEach((id) => {
         el[id] = document.getElementById(id);
@@ -59,7 +66,15 @@ function init() {
     getOrCreateDeviceId();
     registerServiceWorker();
     readKeyFromUrlOrStorage();
+    showInsecureWarning();
     bindEvents();
+}
+
+function showInsecureWarning() {
+    const host = window.location.hostname;
+    const localHost = host === "localhost" || host === "127.0.0.1";
+    if (window.isSecureContext || localHost) return;
+    el["insecure-warning"].classList.remove("hidden");
 }
 
 function getOrCreateDeviceId() {
@@ -159,6 +174,13 @@ function bindEvents() {
     });
 
     el["btn-dismiss-alarm"].addEventListener("click", dismissAlarm);
+
+    el["btn-retry-camera"].addEventListener("click", async () => {
+        await initLightSensor();
+        if (state.lightSource === "camera" || state.lightSource === "ambient_sensor") {
+            el["btn-retry-camera"].classList.add("hidden");
+        }
+    });
 
     el["btn-toggle-monitor"].addEventListener("click", async () => {
         if (state.monitoring) stopMonitoring();
@@ -373,6 +395,7 @@ const peerState = {
     battery: null,
     lastSeen: null,
     lastAlarm: null,
+    location: null,
 };
 
 function updatePeerUI(peer) {
@@ -390,6 +413,7 @@ function updatePeerUI(peer) {
         el["peer-battery"].textContent = "-";
         el["peer-age"].textContent = "-";
         el["peer-alert"].classList.add("hidden");
+        updateMapPanel();
         return;
     }
 
@@ -420,6 +444,8 @@ function updatePeerUI(peer) {
         el["peer-alert"].classList.add("hidden");
         state.peerDangerSeen = false;
     }
+
+    updateMapPanel();
 }
 
 /* Layar */
@@ -445,6 +471,8 @@ function setLaptopConnected(connected) {
 function renderStatus() {
     const card = el["status-card"];
     const connected = state.ws && state.ws.readyState === WebSocket.OPEN;
+
+    updateMapPanel();
 
     if (state.alarmActive) {
         card.className = "status-card status-danger";
@@ -503,6 +531,12 @@ async function startMonitoring() {
         return;
     }
 
+    window.addEventListener("devicemotion", onDeviceMotion);
+
+    // Izin kamera & lokasi diminta selagi gesture klik masih berlaku
+    await initLightSensor();
+    requestLocationPermission();
+
     if ("Notification" in window && Notification.permission === "default") {
         try {
             await Notification.requestPermission();
@@ -511,8 +545,6 @@ async function startMonitoring() {
         }
     }
 
-    window.addEventListener("devicemotion", onDeviceMotion);
-    await initLightSensor();
     await requestWakeLock();
     initBattery();
 
@@ -565,12 +597,9 @@ function onDeviceMotion(event) {
     const delta = Math.abs(mag - 9.81);
 
     state.accel = { x, y, z, mag };
-    state.currentDelta = delta;  // Nilai real-time
+    state.currentDelta = delta;
+    state.lastMotionTime = Date.now();
     if (delta > state.maxDelta) state.maxDelta = delta;
-
-    el["diag-ax"].textContent = x.toFixed(2);
-    el["diag-ay"].textContent = y.toFixed(2);
-    el["diag-az"].textContent = z.toFixed(2);
 }
 
 async function initLightSensor() {
@@ -589,6 +618,7 @@ async function initLightSensor() {
             await new Promise((resolve) => setTimeout(resolve, 2000));
             if (gotReading) {
                 state.ambientSensor = sensor;
+                el["btn-retry-camera"].classList.add("hidden");
                 return;
             }
             sensor.stop();
@@ -604,9 +634,11 @@ async function initLightSensor() {
         await el["hidden-video"].play();
         state.lightSource = "camera";
         el["val-light-src"].textContent = "Sumber: kamera";
+        el["btn-retry-camera"].classList.add("hidden");
     } catch (err) {
         state.lightSource = "unavailable";
-        el["val-light-src"].textContent = "Sumber: tidak tersedia";
+        el["val-light-src"].textContent = `Sumber: tidak tersedia (${err.name || "gagal"})`;
+        el["btn-retry-camera"].classList.remove("hidden");
     }
 }
 
@@ -632,6 +664,163 @@ function measureCameraLuma() {
     } catch (err) {
         return 0;
     }
+}
+
+/* Lokasi & peta */
+
+function requestLocationPermission() {
+    if (!navigator.geolocation) {
+        el["map-status"].textContent = "GPS tidak tersedia di HP ini";
+        return;
+    }
+    // Satu kali saat mulai: memicu popup izin dan menyiapkan posisi kasar
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const coords = position.coords;
+            state.locationOwn = {
+                lat: coords.latitude,
+                lng: coords.longitude,
+                acc: coords.accuracy || 0,
+                ts: position.timestamp || Date.now(),
+            };
+        },
+        (err) => {
+            if (err.code === err.PERMISSION_DENIED) {
+                el["map-status"].textContent = "Izin lokasi ditolak";
+            }
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+    );
+}
+
+function startLocationTracking() {
+    if (state.locationWatchId !== null) return;
+    if (!navigator.geolocation) {
+        el["map-status"].textContent = "GPS tidak tersedia di HP ini";
+        return;
+    }
+
+    state.locationWatchId = navigator.geolocation.watchPosition(handlePosition, handlePositionError, {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 20000,
+    });
+}
+
+function stopLocationTracking() {
+    if (state.locationWatchId === null) return;
+    navigator.geolocation.clearWatch(state.locationWatchId);
+    state.locationWatchId = null;
+    state.locationLive = false;
+}
+
+function handlePosition(position) {
+    const coords = position.coords;
+    const now = Date.now();
+    state.locationLive = true;
+    state.locationOwn = {
+        lat: coords.latitude,
+        lng: coords.longitude,
+        acc: coords.accuracy || 0,
+        ts: now,
+    };
+
+    el["map-status"].textContent = "Lokasi realtime";
+
+    // Kirim ke laptop maksimal 1 kali per detik
+    if (now - state.lastLocationSent >= 1000) {
+        state.lastLocationSent = now;
+        send({
+            type: "location",
+            lat: coords.latitude,
+            lng: coords.longitude,
+            acc: coords.accuracy || 0,
+            ts: now / 1000,
+        });
+    }
+
+    updateMapPanel();
+}
+
+function handlePositionError(err) {
+    const pesan = {
+        1: "Izin lokasi ditolak",
+        2: "Lokasi tidak tersedia",
+        3: "GPS timeout",
+    };
+    el["map-status"].textContent = pesan[err.code] || "GPS gagal";
+}
+
+function peerRoleName() {
+    return state.role === "A" ? "B" : "A";
+}
+
+function updateMapPanel() {
+    const selfDanger = state.alarmActive || state.ownStatus === "danger";
+    const peerDanger = peerState.connected && peerState.status === "danger";
+
+    let mode = null;
+    if (selfDanger) mode = "self";
+    else if (peerDanger) mode = "peer";
+
+    if (!mode) {
+        hideMap();
+        return;
+    }
+
+    showMap(mode);
+}
+
+function showMap(mode) {
+    el["map-panel"].classList.remove("hidden");
+    state.mapMode = mode;
+
+    if (!miniMap) miniMap = new MiniMap(el["map-canvas"]);
+
+    if (mode === "self") {
+        el["map-title"].textContent = "Lokasi HP ini";
+        startLocationTracking();
+
+        if (state.locationOwn) {
+            const label = state.locationLive ? "Lokasi realtime" : "Lokasi terakhir";
+            applyMapPosition(state.locationOwn, label);
+        } else {
+            el["map-status"].textContent = "Menunggu GPS...";
+        }
+        return;
+    }
+
+    stopLocationTracking();
+    el["map-title"].textContent = `Lokasi HP ${peerRoleName()}`;
+
+    const location = peerState.location;
+    if (location && Number.isFinite(location.lat)) {
+        const age = location.age_s !== undefined ? `${location.age_s}s lalu` : "realtime";
+        applyMapPosition(location, `Update ${age}`);
+    } else {
+        el["map-status"].textContent = "HP pasangan belum mengirim lokasi";
+        el["map-coords"].textContent = "-";
+        el["map-link"].classList.add("hidden");
+    }
+}
+
+function applyMapPosition(location, statusText) {
+    const accuracy = Math.round(location.accuracy ?? location.acc ?? 0);
+    miniMap.setPosition(location.lat, location.lng, accuracy);
+
+    el["map-status"].textContent = `${statusText} (±${accuracy} m)`;
+    el["map-coords"].textContent = `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`;
+
+    const link = el["map-link"];
+    link.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
+    link.classList.remove("hidden");
+}
+
+function hideMap() {
+    if (state.mapMode === null) return;
+    state.mapMode = null;
+    el["map-panel"].classList.add("hidden");
+    stopLocationTracking();
 }
 
 async function requestWakeLock() {
@@ -669,6 +858,13 @@ function sendSensor() {
     }
 
     const moving = state.maxDelta > 2.5;
+
+    // Reset deviasi ke 0 jika tidak ada motion baru > 200ms
+    if (Date.now() - (state.lastMotionTime || 0) > 200) {
+        state.maxDelta = 0;
+        state.currentDelta = 0;
+    }
+
     el["val-light"].textContent = Math.round(state.lightValue);
     el["val-accel"].textContent = moving ? "Bergerak" : "Diam";
     el["val-accel-sub"].textContent = `Deviasi: ${state.maxDelta.toFixed(2)}`;

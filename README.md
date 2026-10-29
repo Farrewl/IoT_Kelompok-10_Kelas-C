@@ -26,6 +26,7 @@ Tidak ada aplikasi yang dipasang di HP. HP hanya membuka alamat web di Chrome An
 │   ├── state_store.py       # state.json (armed per HP)
 │   └── tools/calibrate.py   # Analisis sensor_log.csv
 ├── web/                     # HTML + CSS + JS biasa
+│   └── minimap.js           # Peta lokasi OpenStreetMap tanpa library
 └── .env                     # Dibuat otomatis, berisi ACCESS_KEY (tidak di-commit)
 ```
 
@@ -48,9 +49,17 @@ python3 start.py --port 8080     # ganti port
 
 Dashboard laptop: `http://127.0.0.1:8000/dashboard` (hanya dari laptop, tidak bisa lewat tunnel).
 
+## Peta lokasi saat tidak aman
+
+- Saat **Mulai Pemantauan**, HP meminta izin lokasi satu kali (posisi kasar, tidak dikirim ke laptop).
+- Saat HP berstatus **tidak aman**, GPS realtime aktif dan posisi dikirim maksimal 1×/detik.
+- Peta muncul di HP tersebut, di HP pasangan, dan di dashboard laptop.
+- Setelah **Saya Sudah Aman**, GPS berhenti dan peta hilang. Lokasi terakhir tetap tersimpan di laptop sebagai bukti.
+- Peta memakai tile OpenStreetMap langsung (tanpa library/CDN) dan perlu internet.
+
 ## Protokol (`/ws`, JSON UTF-8)
 
-HP → laptop: `auth`, `sensor`, `control`, `dismiss`, `ping`
+HP → laptop: `auth`, `sensor`, `location`, `control`, `dismiss`, `ping`
 Laptop → HP: `auth_ok` (dengan `role`), `auth_fail`, `state`, `peer` (snapshot HP pasangan 1 Hz), `alarm` (dengan `from`, `self`), `pong`
 
 ## Konfigurasi `.env`
@@ -87,7 +96,9 @@ Laptop → HP: `auth_ok` (dengan `role`), `auth_fail`, `state`, `peer` (snapshot
 ## Keterbatasan
 
 - Layar HP harus tetap menyala (browser tidak memberi akses sensor dari latar belakang).
+- Kamera dan GPS hanya berjalan di **HTTPS** (pakai URL tunnel, bukan IP lokal).
 - Kamera dipakai sebagai pengganti sensor cahaya (nilai relatif, bukan lux), wajib dikalibrasi.
+- Akurasi GPS di dalam tas/gedung bisa puluhan meter. Peta butuh internet.
 - Boros baterai; untuk uji panjang gunakan power bank.
 - URL quick tunnel berubah setiap `start.py` dijalankan.
 - Laptop harus menyala, online, dan tidak sleep.
@@ -100,5 +111,7 @@ Laptop → HP: `auth_ok` (dengan `role`), `auth_fail`, `state`, `peer` (snapshot
 | Port sudah dipakai | `start.py` pindah port otomatis. Atau: `pkill -f "uvicorn server.main:app"` |
 | Server langsung berhenti | Lihat pesan error di atas. URL tidak dicetak jika `/health` gagal. |
 | HP tidak terhubung | Pastikan HP punya internet. Gunakan URL HTTPS, bukan localhost. |
+| Cahaya 0 / izin kamera tidak muncul | Pastikan halaman dibuka lewat URL HTTPS tunnel, lalu tekan **Izinkan kamera** di kartu Cahaya. |
+| Peta kosong / tidak muncul | GPS butuh HTTPS dan internet. Cek izin Lokasi di pengaturan situs Chrome. |
 | Dashboard 403 | Dashboard hanya dari laptop. Buka `http://127.0.0.1:8000/dashboard`. |
 | Alarm tidak sampai ke HP pasangan | Pastikan kedua HP terhubung (cek dashboard laptop). |

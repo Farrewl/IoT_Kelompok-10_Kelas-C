@@ -1,0 +1,103 @@
+/* Gaya peta mini, dipakai halaman HP dan dashboard laptop. */
+
+.minimap {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #1b2430;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.minimap-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    will-change: transform;
+}
+
+.minimap-layer img {
+    position: absolute;
+    width: 256px;
+    height: 256px;
+    user-select: none;
+    pointer-events: none;
+    background: #22303f;
+}
+
+.minimap-marker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.25), 0 2px 8px rgba(0, 0, 0, 0.5);
+    z-index: 3;
+    animation: minimap-pulse 1.6s ease-out infinite;
+}
+
+.minimap-accuracy {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.minimap-attr {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    z-index: 4;
+    font-size: 9px;
+    color: #1e293b;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 0 4px;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+.minimap-zoom {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.minimap-zoom button {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.minimap-zoom button:active {
+    background: #e2e8f0;
+}
+
+@keyframes minimap-pulse {
+    0% {
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.35), 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 0 18px rgba(239, 68, 68, 0), 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+}

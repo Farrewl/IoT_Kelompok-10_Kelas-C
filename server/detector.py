@@ -148,7 +148,6 @@ class DetectionEngine:
         return {
             "type": "alarm",
             "level": "HIGH",
-            "reason": "terang+getar",
             "light": {"source": source, "value": value},
             "shake_score": round(shake_score, 2),
             "trigger_sensor_ts": sensor_ts,
@@ -177,7 +176,6 @@ class DetectionEngine:
         return {
             "type": "alarm",
             "level": "WARN",
-            "reason": "sensor_timeout",
             "light": {"source": self._last_source or "unknown", "value": 0},
             "shake_score": 0.0,
             "trigger_sensor_ts": now,

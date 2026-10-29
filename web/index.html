@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TasGuard</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="minimap.css">
     <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
@@ -14,6 +15,9 @@
             <span id="role-badge" class="role-badge">HP -</span>
         </div>
         <p class="subtitle">Pemantauan keamanan tas</p>
+        <p id="insecure-warning" class="insecure-warning hidden">
+            Halaman ini tidak memakai HTTPS. Kamera dan GPS diblokir Chrome. Buka URL tunnel dari laptop.
+        </p>
 
         <!-- Layar sambung -->
         <section id="connect-screen" class="glass-card">
@@ -45,6 +49,17 @@
 
             <button id="btn-dismiss-alarm" class="btn-primary orange hidden">Saya Sudah Aman</button>
 
+            <div id="map-panel" class="map-panel hidden">
+                <div class="map-header">
+                    <h4 id="map-title">Lokasi HP</h4>
+                    <span id="map-status" class="mini-sub">Menunggu GPS...</span>
+                </div>
+                <div id="map-canvas" class="minimap map-canvas"></div>
+                <div class="map-footer">
+                    <span id="map-coords" class="mini-sub">-</span>
+                    <a id="map-link" class="map-link hidden" href="#" target="_blank" rel="noopener">Buka Google Maps</a>
+                </div>
+            </div>
 
 
             <button id="btn-toggle-monitor" class="btn-primary">Mulai Pemantauan</button>
@@ -55,6 +70,7 @@
                     <span class="mini-label">Cahaya Anda</span>
                     <strong id="val-light">--</strong>
                     <span id="val-light-src" class="mini-sub">Sumber: -</span>
+                    <button type="button" id="btn-retry-camera" class="mini-link hidden">Izinkan kamera</button>
                 </div>
                 <div class="mini-card">
                     <span class="mini-label">Gerakan Anda</span>
@@ -95,7 +111,7 @@
         <div class="bag-content">
             <div id="bag-overlay-status" class="bag-dot"></div>
             <h2>TasGuard berjalan</h2>
-            <p>Tahan layar 3 detik untuk keluar.</p>
+            <p>Tekan layar 3 detik untuk keluar.</p>
             <p id="bag-alarm-text" class="bag-alarm hidden">TAS ANDA DIBUKA &amp; BERGERAK!</p>
         </div>
     </div>
@@ -103,6 +119,7 @@
     <video id="hidden-video" autoplay playsinline muted></video>
     <canvas id="hidden-canvas" width="16" height="16"></canvas>
 
+    <script src="minimap.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

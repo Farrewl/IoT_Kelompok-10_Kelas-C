@@ -28,6 +28,8 @@ class Device:
         self.last_sensor_at: Optional[float] = None
         self.last_message_at: float = time.time()
         self.status: str = "safe"  # "safe" | "danger"
+        self.alarm_sent: Optional[str] = None  # level alarm terakhir yang sudah dikirim
+        self.location: Optional[dict] = None
         self.alarms: int = 0
         self.last_alarm: Optional[dict] = None
         self.lock = asyncio.Lock()
@@ -75,6 +77,7 @@ class DeviceRegistry:
                 new_dev.last_alarm = old_dev.last_alarm
                 new_dev.last_sensor = old_dev.last_sensor
                 new_dev.last_sensor_at = old_dev.last_sensor_at
+                new_dev.location = old_dev.location
 
         self.devices[role] = new_dev
         self.device_map[device_id] = role
@@ -151,10 +154,39 @@ class DeviceRegistry:
 
         return None
 
+    def handle_location(self, role: str, message: dict) -> None:
+        dev = self.devices[role]
+        if not dev:
+            return
+
+        try:
+            lat = float(message.get("lat"))
+            lng = float(message.get("lng"))
+        except (TypeError, ValueError):
+            return
+
+        if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
+            return
+
+        try:
+            accuracy = float(message.get("acc", 0) or 0)
+        except (TypeError, ValueError):
+            accuracy = 0.0
+
+        now = time.time()
+        dev.last_message_at = now
+        dev.location = {
+            "lat": round(lat, 6),
+            "lng": round(lng, 6),
+            "accuracy": round(accuracy, 1),
+            "ts": round(now, 3),
+        }
+
     def dismiss(self, role: str) -> None:
         dev = self.devices[role]
         if dev:
             dev.status = "safe"
+            dev.alarm_sent = None
 
     def check_timeouts(self) -> List[dict]:
         alarms = []
@@ -183,11 +215,20 @@ class DeviceRegistry:
     def snapshot(self, role: str) -> dict:
         dev = self.devices[role]
         if not dev:
-            return {"role": role, "connected": False, "status": "offline", "armed": get_armed(role)}
+            return {
+                "role": role,
+                "connected": False,
+                "status": "offline",
+                "armed": get_armed(role),
+                "location": None,
+            }
 
         now = time.time()
         ls = dev.last_sensor or {}
         age = round(now - dev.last_sensor_at, 1) if dev.last_sensor_at else None
+        location = None
+        if dev.location:
+            location = {**dev.location, "age_s": round(now - dev.location["ts"], 1)}
 
         return {
             "role": role,
@@ -201,6 +242,7 @@ class DeviceRegistry:
             "deviation": ls.get("deviation", 0.0),
             "shaking": ls.get("shaking", False),
             "battery": ls.get("battery"),
+            "location": location,
             "last_seen_s": age,
             "alarms": dev.alarms,
             "last_alarm": dev.last_alarm,
@@ -208,6 +250,16 @@ class DeviceRegistry:
 
     async def broadcast_alarm(self, alarm: dict) -> None:
         sender_role = alarm["from"]
+        sender_dev = self.devices[sender_role]
+
+        # Satu notifikasi per kejadian; alarm HIGH tetap boleh menimpa WARN.
+        if sender_dev:
+            if sender_dev.alarm_sent == "HIGH":
+                return
+            if sender_dev.alarm_sent == "WARN" and alarm["level"] != "HIGH":
+                return
+            sender_dev.alarm_sent = alarm["level"]
+
         for role in ROLES:
             dev = self.devices[role]
             if dev:

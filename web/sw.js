@@ -1,4 +1,4 @@
-/* Service worker TasGuard: notifikasi alarm yang diteruskan Huawei Health ke Band 6. */
+/* Service worker TasGuard: notifikasi alarm lintas HP. */
 
 const ALARM_TAG = "tasguard-alarm";
 const DISCONNECT_TAG = "tasguard-disconnect";

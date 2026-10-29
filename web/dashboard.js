@@ -26,6 +26,8 @@ function renderDashboard(data) {
 
     ["A", "B"].forEach((role) => {
         const dev = data.devices[role];
+        renderLocation(role, dev);
+
         const dot = document.getElementById(`status-dot-${role}`);
         const card = document.getElementById(`card-${role}`);
         const statStatus = document.getElementById(`stat-status-${role}`);
@@ -73,4 +75,29 @@ function renderDashboard(data) {
         statSeen.textContent = dev.last_seen_s !== null ? `${dev.last_seen_s}s lalu` : "-";
         statAlarms.textContent = dev.alarms;
     });
+}
+/* Peta lokasi: hanya tampil saat HP berstatus tidak aman */
+
+const maps = { A: null, B: null };
+
+function renderLocation(role, dev) {
+    const wrap = document.getElementById(`map-wrap-${role}`);
+    const location = dev.location;
+
+    if (!dev.connected || dev.status !== "danger" || !location) {
+        wrap.classList.add("hidden");
+        return;
+    }
+
+    wrap.classList.remove("hidden");
+    if (!maps[role]) maps[role] = new MiniMap(document.getElementById(`map-${role}`));
+
+    maps[role].setPosition(location.lat, location.lng, location.accuracy);
+
+    document.getElementById(`map-text-${role}`).textContent =
+        `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)} ` +
+        `(±${Math.round(location.accuracy || 0)} m, ${location.age_s}s lalu)`;
+
+    const link = document.getElementById(`map-link-${role}`);
+    link.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
 }

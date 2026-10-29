@@ -212,6 +212,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 print(f"[HP {role}] Alarm ditutup (Saya Sudah Aman)")
                 await registry.broadcast_peer_updates()
 
+            elif kind == "location":
+                registry.handle_location(role, message)
+                await registry.broadcast_peer_updates()
+
             elif kind == "sensor":
                 alarm = registry.handle_sensor(role, message)
                 if alarm:

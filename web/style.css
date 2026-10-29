@@ -491,3 +491,73 @@ input[type="text"]:focus {
     font-weight: 700;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
+/* Peta lokasi */
+
+.map-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.map-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.map-header h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.map-canvas {
+    height: 190px;
+    width: 100%;
+}
+
+.map-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.map-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: #c7d2fe;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(199, 210, 254, 0.4);
+}
+
+.mini-link {
+    margin-top: 4px;
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #fca5a5;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.insecure-warning {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fde68a;
+    font-size: 12px;
+    line-height: 1.45;
+}

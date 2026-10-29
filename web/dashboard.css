@@ -108,3 +108,31 @@ body {
     border-color: #22c55e;
     background: rgba(34, 197, 94, 0.15);
 }
+.dash-map-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dash-map {
+    height: 200px;
+    width: 100%;
+}
+
+.dash-map-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.dash-map-info a {
+    color: #c7d2fe;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(199, 210, 254, 0.4);
+    font-family: system-ui, sans-serif;
+    font-weight: 600;
+}
