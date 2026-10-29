@@ -49,6 +49,22 @@ python3 start.py --port 8080     # ganti port
 
 Dashboard laptop: `http://127.0.0.1:8000/dashboard` (hanya dari laptop, tidak bisa lewat tunnel).
 
+## Windows
+
+Prasyarat: Python 3.11+ dari [python.org](https://www.python.org/downloads/) (centang **Add python.exe to PATH**), bukan Python MSYS2/Cygwin/Microsoft Store.
+
+```powershell
+cd "C:\path\ke\IoT_Kelompok 10_Kelas C"
+py start.py
+```
+
+- Pakai `py start.py`, **bukan** `python3 start.py`. Di MSYS2, `python3` menunjuk ke Python MSYS2 yang venv/pip-nya sering rusak.
+- `server/requirements.txt` sengaja memakai `uvicorn` biasa (bukan `uvicorn[standard]`). Extra itu menarik PyYAML/httptools/watchfiles yang harus dikompilasi dan gagal di Windows tanpa Visual C++ Build Tools.
+- Jika memakai Python paling baru (mis. 3.15) dan masih ada paket gagal dibangun, pasang Python 3.12/3.13 dari python.org lalu buat ulang `.venv`.
+- Jika muncul `FileNotFoundError: [WinError 2] ... .venv\Scripts\python.exe`, folder `.venv` lama tidak lengkap. Hapus folder `.venv`, lalu jalankan `py start.py` lagi.
+- Saat pertama jalan, Windows Firewall mungkin bertanya. Pilih **Allow** untuk jaringan privat bila ingin mengakses lewat IP lokal; akses lewat tunnel tidak butuh izin ini.
+- Jika `py` tidak dikenali, pakai `python start.py` (setelah PATH benar).
+
 ## Peta lokasi saat tidak aman
 
 - Saat **Mulai Pemantauan**, HP meminta izin lokasi satu kali (posisi kasar, tidak dikirim ke laptop).
@@ -90,8 +106,14 @@ Laptop → HP: `auth_ok` (dengan `role`), `auth_fail`, `state`, `peer` (snapshot
 
 1. Jalankan server dengan `LOG_CSV=true`, sambungkan HP, mulai pemantauan.
 2. Lakukan 4 kondisi (tas tertutup diam, dibuka diam, tertutup berjalan, digoyang), masing-masing 30 detik.
-3. Jalankan: `PYTHONPATH=. ./.venv/bin/python3 server/tools/calibrate.py`
+3. Jalankan analisis (server tidak perlu menyala):
+   ```bash
+   ./.venv/bin/python3 server/tools/calibrate.py     # Linux
+   .venv\Scripts\python.exe server\tools\calibrate.py  # Windows
+   ```
 4. Salin nilai dari `calibration.json` ke `.env`, jalankan ulang server.
+
+Skrip membaca `sensor_log.csv` di folder proyek (kolom `nilai_cahaya`, `deviasi`, `sumber_cahaya`) dan memberi saran `LUMA_THRESHOLD` (kamera), `LUX_THRESHOLD` (sensor cahaya), serta `ACCEL_THRESHOLD`. Baris kosong atau bukan angka dilewati. Saran ini hanya perkiraan; tetap uji dengan HP asli.
 
 ## Keterbatasan
 
@@ -110,6 +132,8 @@ Laptop → HP: `auth_ok` (dengan `role`), `auth_fail`, `state`, `peer` (snapshot
 |---|---|
 | Port sudah dipakai | `start.py` pindah port otomatis. Atau: `pkill -f "uvicorn server.main:app"` |
 | Server langsung berhenti | Lihat pesan error di atas. URL tidak dicetak jika `/health` gagal. |
+| Windows: `FileNotFoundError [WinError 2]` di `.venv\Scripts\python.exe` | Folder `.venv` lama/rusak. Hapus `.venv`, jalankan `py start.py` lagi. Pastikan Python dari python.org, bukan MSYS2. |
+| Windows: `Failed building wheel for pyyaml` / `Microsoft Visual C++ 14.0 or greater is required` | Sudah diperbaiki: dependensi tidak lagi memakai `uvicorn[standard]`. Ambil `server/requirements.txt` terbaru, lalu jalankan `py start.py` lagi. |
 | HP tidak terhubung | Pastikan HP punya internet. Gunakan URL HTTPS, bukan localhost. |
 | Cahaya 0 / izin kamera tidak muncul | Pastikan halaman dibuka lewat URL HTTPS tunnel, lalu tekan **Izinkan kamera** di kartu Cahaya. |
 | Peta kosong / tidak muncul | GPS butuh HTTPS dan internet. Cek izin Lokasi di pengaturan situs Chrome. |

@@ -1,5 +1,7 @@
 fastapi>=0.110.0
-uvicorn[standard]>=0.28.0
+# Tanpa extra [standard]: PyYAML/httptools/watchfiles butuh kompilasi C/Rust
+# yang belum tersedia untuk Python terbaru di Windows.
+uvicorn>=0.28.0
 python-dotenv>=1.0.0
 qrcode>=7.4.2
 websockets>=12.0

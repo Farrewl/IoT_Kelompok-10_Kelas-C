@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from server import config
 from server.registry import DeviceRegistry
-from server.state_store import get_armed, load_state, save_state
+from server.state_store import get_armed, load_state, save_state, set_armed
 
 WEB_DIR = os.path.join(os.path.dirname(__file__), "..", "web")
 DASHBOARD_HTML = os.path.join(WEB_DIR, "dashboard.html")
