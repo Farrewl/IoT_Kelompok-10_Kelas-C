@@ -16,8 +16,8 @@ self.addEventListener("message", (event) => {
 
     if (data.type === "SHOW_ALARM_NOTIFICATION") {
         event.waitUntil(
-            self.registration.showNotification(data.title || "TAS DIBUKA & BERGERAK!", {
-                body: data.body || "Tas Anda dibuka dan bergerak.",
+            self.registration.showNotification(data.title || "TAS TIDAK AMAN!", {
+                body: data.body || "Tas Anda tidak aman.",
                 icon: "./icons/icon-192.png",
                 badge: "./icons/icon-192.png",
                 tag: ALARM_TAG,

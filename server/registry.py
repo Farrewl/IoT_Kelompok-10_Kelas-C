@@ -136,9 +136,10 @@ class DeviceRegistry:
 
         if alarm:
             dev.alarms += 1
+            reason = self._alarm_reason(role, alarm["level"])
             dev.last_alarm = {
                 "level": alarm["level"],
-                "reason": alarm["reason"],
+                "reason": reason,
                 "ts": round(now, 3),
             }
             if alarm["level"] == "HIGH":
@@ -147,12 +148,18 @@ class DeviceRegistry:
             alarm.update(
                 {
                     "from": role,
+                    "reason": reason,
                     "server_ts": round(now, 3),
                 }
             )
             return alarm
 
         return None
+
+    def _alarm_reason(self, role: str, level: str) -> str:
+        if level == "HIGH":
+            return f"Tas {role} tidak aman"
+        return f"HP {role} tidak merespons"
 
     def handle_location(self, role: str, message: dict) -> None:
         dev = self.devices[role]
@@ -198,14 +205,16 @@ class DeviceRegistry:
             alarm = dev.detector.check_timeout()
             if alarm:
                 dev.alarms += 1
+                reason = self._alarm_reason(role, alarm["level"])
                 dev.last_alarm = {
                     "level": alarm["level"],
-                    "reason": alarm["reason"],
+                    "reason": reason,
                     "ts": round(now, 3),
                 }
                 alarm.update(
                     {
                         "from": role,
+                        "reason": reason,
                         "server_ts": round(now, 3),
                     }
                 )

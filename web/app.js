@@ -429,7 +429,7 @@ function updatePeerUI(peer) {
 
     if (peer.status === "danger" && peer.last_alarm) {
         el["peer-alert"].classList.remove("hidden");
-        el["peer-alert-text"].textContent = `HP ${peerRole} TIDAK AMAN (${peer.last_alarm.reason})!`;
+        el["peer-alert-text"].textContent = `HP ${peerRole} TIDAK AMAN!`;
 
         if (!state.peerDangerSeen) {
             state.peerDangerSeen = true;
@@ -437,7 +437,7 @@ function updatePeerUI(peer) {
             notifyServiceWorker({
                 type: "SHOW_ALARM_NOTIFICATION",
                 title: `HP ${peerRole} TIDAK AMAN!`,
-                body: `Tas HP ${peerRole} dibuka dan bergerak (${peer.last_alarm.reason}).`,
+                body: `Tas ${peerRole} tidak aman.`,
             });
         }
     } else {
@@ -476,7 +476,7 @@ function renderStatus() {
 
     if (state.alarmActive) {
         card.className = "status-card status-danger";
-        el["status-title"].textContent = "BAHAYA! Tas Anda dibuka";
+        el["status-title"].textContent = `BAHAYA! Tas ${state.role} tidak aman`;
         el["bag-overlay-status"].style.backgroundColor = "var(--danger)";
         el["bag-alarm-text"].classList.remove("hidden");
         el["btn-dismiss-alarm"].classList.remove("hidden");
@@ -891,7 +891,7 @@ function handleAlarm(data) {
     const fromRole = data.from;
 
     if (isSelf) {
-        const reason = isWarn ? "Sensor Anda tidak merespons" : "Tas Anda dibuka & bergerak";
+        const reason = isWarn ? "Sensor Anda tidak merespons" : `Tas ${fromRole} tidak aman`;
         if (!isWarn) {
             state.alarmActive = true;
             state.ownStatus = "danger";
@@ -904,14 +904,14 @@ function handleAlarm(data) {
 
         notifyServiceWorker({
             type: isWarn ? "SHOW_WARN_NOTIFICATION" : "SHOW_ALARM_NOTIFICATION",
-            title: isWarn ? "Sensor Anda tidak merespons" : "TAS ANDA DIBUKA & BERGERAK!",
+            title: isWarn ? "Sensor Anda tidak merespons" : `TAS ${fromRole} TIDAK AMAN!`,
             body: `${time} - ${reason}`,
         });
 
         const latency = Math.round((Date.now() / 1000 + state.clockOffset - Number(data.server_ts || 0)) * 1000);
         addHistory({ time, who: "HP ini", reason, latency: Math.max(0, latency), level: data.level });
     } else {
-        const reason = isWarn ? `HP ${fromRole} tidak merespons` : `HP ${fromRole} tidak aman (${data.reason})`;
+        const reason = isWarn ? `HP ${fromRole} tidak merespons` : `Tas ${fromRole} tidak aman`;
         if (!isWarn && "vibrate" in navigator) {
             navigator.vibrate([400, 200, 400, 200, 400]);
         }

@@ -31,7 +31,6 @@ function renderDashboard(data) {
         const dot = document.getElementById(`status-dot-${role}`);
         const card = document.getElementById(`card-${role}`);
         const statStatus = document.getElementById(`stat-status-${role}`);
-        const statArmed = document.getElementById(`stat-armed-${role}`);
         const statLight = document.getElementById(`stat-light-${role}`);
         const statAccel = document.getElementById(`stat-accel-${role}`);
         const statBattery = document.getElementById(`stat-battery-${role}`);
@@ -43,7 +42,6 @@ function renderDashboard(data) {
             dot.textContent = "Offline";
             card.className = "dash-card";
             statStatus.textContent = "Offline / Belum terhubung";
-            statArmed.textContent = "-";
             statLight.textContent = "-";
             statAccel.textContent = "-";
             statBattery.textContent = "-";
@@ -63,7 +61,6 @@ function renderDashboard(data) {
         }
 
         statStatus.textContent = dev.status === "danger" ? "TIDAK AMAN (Bahaya)" : "Aman";
-        statArmed.textContent = dev.armed ? "Aktif" : "Nonaktif";
 
         const terang = dev.light && dev.light.value >= 15 ? "Terang" : "Gelap";
         statLight.textContent = `${terang} (${Math.round(dev.light.value || 0)} - ${dev.light.source})`;
